@@ -1,0 +1,92 @@
+<h1>Welcome to PassKey Auth App</h1>
+
+<% if session[:user_id] %>
+<p>You are logged in.</p>
+<%= button_to 'Log out', logout_path, method: :delete %> <% else %>
+<p>You are not logged in.</p>
+<div>
+  <label for="user-id">User ID:</label>
+  <input type="text" id="user-id" name="user_id" required />
+</div>
+<button id="register-passkey">Register PassKey</button>
+<%= button_to 'Log in with PassKey', login_path, method: :post %> <% end %>
+
+<script>
+  // パスキー登録関数
+  async function registerPasskey(userId) {
+    const publicKeyCredentialCreationOptions = {
+      challenge: new Uint8Array(32),
+      rp: {
+        name: "PassKey Auth App",
+        id: window.location.hostname,
+      },
+      user: {
+        id: new Uint8Array(16),
+        name: "user@example.com",
+        displayName: "Test User",
+      },
+      pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+      authenticatorSelection: {
+        authenticatorAttachment: "platform",
+        requireResidentKey: true,
+        userVerification: "required",
+      },
+      timeout: 60000,
+      attestation: "direct",
+    };
+
+    const credential = await navigator.credentials.create({
+      publicKey: publicKeyCredentialCreationOptions,
+    });
+
+    const publicKeyBytes = await crypto.subtle.exportKey(
+      "raw",
+      credential.response.getPublicKey()
+    );
+    const publicKeyBase64 = btoa(
+      String.fromCharCode(...new Uint8Array(publicKeyBytes))
+    );
+
+    const credentialData = {
+      id: credential.id,
+      rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
+      type: credential.type,
+      response: {
+        attestationObject: btoa(
+          String.fromCharCode(
+            ...new Uint8Array(credential.response.attestationObject)
+          )
+        ),
+        clientDataJSON: btoa(
+          String.fromCharCode(
+            ...new Uint8Array(credential.response.clientDataJSON)
+          )
+        ),
+      },
+    };
+
+    // サーバーにパスキーデータを送信
+    await fetch(`/credentials`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        credential: {
+          user_id: userId,
+          public_key: publicKeyBase64,
+          sign_count: credential.response.getTransports().length,
+        },
+      }),
+    });
+  }
+
+  // パスキー登録ボタンクリック時の処理
+  document
+    .getElementById("register-passkey")
+    .addEventListener("click", async () => {
+      const userId = document.getElementById("user-id").value;
+      await registerPasskey(userId);
+      alert("PassKey registered successfully");
+    });
+</script>
