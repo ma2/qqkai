@@ -1,24 +1,22 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## 詰まったところ
 
-Things you may want to cover:
+### native extension
+- Railsインストール中にコンパイルできないエラーになった
+- よく見たら32bit版のrubyだった。64bit版を入れ直して解決
 
-* Ruby version
+### bundle install
+- × `bundle install --path vender/bundle`
+- ○ bundle install --path .bundle`
+- 前者では`bundle exec`が機能しなかった。Winで「/」を使ったから?
+- `bundle install --path vender\bundle`はうまくいったような? 要追試
 
-* System dependencies
+### 秘匿キーのエラー
+- 環境変数`RAILS_MASTER_KEY`に`config/master.key`の内容を設定する
+- master.keyをリポジトリに入れてはいけない_
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+### tailwindのインストール失敗
+- `rails new -css=tail**s**wind`とミススペルしたのでインストールされなかった
+- Gemfileに`gem "tailwindcss-rails"`を追加して`bundle install`後に`bundle exec rails tailwindcss:install`で解決
+- 
