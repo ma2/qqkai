@@ -19,4 +19,11 @@
 ### tailwindのインストール失敗
 - `rails new -css=tail**s**wind`とミススペルしたのでインストールされなかった
 - Gemfileに`gem "tailwindcss-rails"`を追加して`bundle install`後に`bundle exec rails tailwindcss:install`で解決
-- 
+
+### 自己証明書の作成
+- git bashなどを使って作る
+- `openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout localhost.key -out localhost.crt`
+
+### pumaがSSL未対応
+- MSYSにopensslをインストールして、pumaを再インストールすればうまくいくとのことだがうまくいかない。
+- https://qiita.com/pipin68k/items/3845538a6661d991ef54
